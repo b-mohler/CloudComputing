@@ -1,15 +1,21 @@
-# Dockerfile.api
+# src/Dockerfile2.api
 
 FROM python:3.9-slim
 
+# Set the working directory inside the Docker image
 WORKDIR /app2
 
-# Copy requirements.txt from the build context root into the working directory in the container
+# Copy requirements.txt from the build context into /app2 in the Docker image
 COPY requirements.txt /app2/requirements.txt
+
+# Install dependencies
 RUN pip install -r /app2/requirements.txt
 
-# Copy app2.py from the src directory into the working directory in the container
+# Copy app2.py from the build context into /app2 in the Docker image
 COPY app2.py /app2/app2.py
 
+# Expose port 5000 for the application
 EXPOSE 5000
+
+# Define the command to run the application
 CMD ["python", "app2.py"]
