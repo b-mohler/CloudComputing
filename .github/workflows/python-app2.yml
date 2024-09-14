@@ -21,10 +21,10 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Build Docker image for API
-      run: docker build -f Dockerfile2.api -t my-api .
+      run: docker build -f src/Dockerfile2.api -t my-api .
 
     - name: Build Docker image for tests
-      run: docker build -f Dockerfile2.test -t my-tests .
+      run: docker build -f tests/Dockerfile2.test -t my-tests .
 
     - name: Run stack
       run: |
