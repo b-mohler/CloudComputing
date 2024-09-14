@@ -4,13 +4,12 @@ FROM python:3.9-slim
 
 WORKDIR /app2
 
-COPY ../requirements.txt ./
-RUN pip install -r requirements.txt
+# Copy requirements.txt from the project root into the working directory in the container
+COPY requirements.txt ../
+RUN pip install -r ../requirements.txt
 
+# Copy app2.py from the src directory into the working directory in the container
 COPY app2.py .
 
 EXPOSE 5000
-
 CMD ["python", "app2.py"]
-
-
