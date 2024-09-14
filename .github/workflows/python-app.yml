@@ -21,7 +21,7 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Build Docker image for tests
-      run: docker build -f Dockerfile.test -t my-tests .
+      run: docker build -f tests/Dockerfile.test -t my-tests .
 
     - name: Run tests
       run: docker run --rm my-tests
