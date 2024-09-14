@@ -1,4 +1,3 @@
 #!/bin/sh
-cd tests
-docker build -f Dockerfile.test -t my-tests .
+docker build -f tests/Dockerfile.test -t my-tests .
 docker run --rm my-tests
