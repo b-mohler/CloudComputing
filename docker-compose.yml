@@ -4,7 +4,7 @@ services:
   localstack:
     image: localstack/localstack:latest
     ports:
-      - "4566:4566"
+      - "4568:4566"
       - "4511:4510"  # DynamoDB port
     environment:
       - LOCALSTACK_PORT=4566
