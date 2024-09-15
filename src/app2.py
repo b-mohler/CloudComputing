@@ -1,104 +1,122 @@
-# app.py
+import pytest
+import json
+from app2 import app, create_resources, dynamodb, s3, TABLE_NAME, BUCKET_NAME
 
-from flask import Flask, request, jsonify
-import boto3
-from botocore.exceptions import ClientError
-import uuid
+# Initialize the Flask test client and create resources
+@pytest.fixture(scope='module')
+def client():
+    create_resources()
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
 
-app = Flask(__name__)
-
-# Initialize AWS clients with LocalStack
-dynamodb = boto3.resource('dynamodb', endpoint_url='http://localstack:4566')
-s3 = boto3.client('s3', endpoint_url='http://localstack:4566')
-
-# DynamoDB table and S3 bucket names
-TABLE_NAME = 'items'
-BUCKET_NAME = 'mybucket'
-
-# Create table and bucket if they do not exist
-def create_resources():
+def get_s3_object(bucket, key):
     try:
-        dynamodb.create_table(
-            TableName=TABLE_NAME,
-            KeySchema=[
-                {'AttributeName': 'id', 'KeyType': 'HASH'}
-            ],
-            AttributeDefinitions=[
-                {'AttributeName': 'id', 'AttributeType': 'S'}
-            ],
-            ProvisionedThroughput={
-                'ReadCapacityUnits': 1,
-                'WriteCapacityUnits': 1
-            }
-        )
-    except ClientError as e:
-        if e.response['Error']['Code'] != 'ResourceInUseException':
-            raise
+        response = s3.get_object(Bucket=bucket, Key=key)
+        return response['Body'].read().decode('utf-8')
+    except s3.exceptions.NoSuchKey:
+        return None
 
-    try:
-        s3.create_bucket(Bucket=BUCKET_NAME)
-    except ClientError as e:
-        if e.response['Error']['Code'] != 'BucketAlreadyOwnedByYou':
-            raise
+def test_get_item(client):
+    item_id = 'get-item-id'
+    item_data = {'name': 'Get Item', 'value': 'This item should be retrieved.'}
+    client.post(f'/items/{item_id}', data=json.dumps(item_data), content_type='application/json')
+    
+    response = client.get(f'/items/{item_id}')
+    assert response.status_code == 200
+    response_json = json.loads(response.data)
+    assert response_json['id'] == item_id
+    assert response_json['name'] == 'Get Item'
+    assert response_json['value'] == 'This item should be retrieved.'
+    assert json.loads(get_s3_object(BUCKET_NAME, item_id)) == json.dumps(item_data)
 
-create_resources()
+def test_get_item_not_found(client):
+    response = client.get('/items/nonexistent-item-id')
+    assert response.status_code == 404
+    response_json = json.loads(response.data)
+    assert response_json['error'] == 'Item not found'
 
-table = dynamodb.Table(TABLE_NAME)
+def test_get_item_no_params(client):
+    response = client.get('/items/')
+    assert response.status_code == 404
+    response_json = json.loads(response.data)
+    assert response_json['error'] == 'Invalid request'
 
-@app.route('/items/<item_id>', methods=['GET'])
-def get_item(item_id):
-    try:
-        response = table.get_item(Key={'id': item_id})
-        item = response.get('Item')
-        if item:
-            s3_object = s3.get_object(Bucket=BUCKET_NAME, Key=item_id)
-            item['s3_object'] = s3_object['Body'].read().decode('utf-8')
-            return jsonify(item), 200
-        return jsonify({'error': 'Item not found'}), 404
-    except ClientError:
-        return jsonify({'error': 'Error accessing S3'}), 500
+def test_get_item_incorrect_params(client):
+    response = client.get('/items/invalid-id?param=extra')
+    assert response.status_code == 404
+    response_json = json.loads(response.data)
+    assert response_json['error'] == 'Invalid request'
 
-@app.route('/items/<item_id>', methods=['POST'])
-def create_item(item_id):
-    if table.get_item(Key={'id': item_id}).get('Item'):
-        return jsonify({'error': 'Item already exists'}), 400
+def test_post_create_item(client):
+    item_id = 'post-create-item-id'
+    item_data = {'name': 'Post Create Item', 'value': 'This item should be created.'}
+    
+    response = client.post(f'/items/{item_id}', data=json.dumps(item_data), content_type='application/json')
+    assert response.status_code == 201
+    response_json = json.loads(response.data)
+    assert response_json['id'] == item_id
+    assert response_json['name'] == 'Post Create Item'
+    assert response_json['value'] == 'This item should be created.'
+    assert json.loads(get_s3_object(BUCKET_NAME, item_id)) == json.dumps(item_data)
 
-    item = request.json
-    item['id'] = item_id
+def test_post_duplicate_item(client):
+    item_id = 'post-duplicate-item-id'
+    item_data = {'name': 'Post Duplicate Item', 'value': 'This item should be duplicated.'}
+    
+    client.post(f'/items/{item_id}', data=json.dumps(item_data), content_type='application/json')
+    response = client.post(f'/items/{item_id}', data=json.dumps(item_data), content_type='application/json')
+    
+    assert response.status_code == 400
+    response_json = json.loads(response.data)
+    assert response_json['error'] == 'Item already exists'
 
-    try:
-        table.put_item(Item=item)
-        s3.put_object(Bucket=BUCKET_NAME, Key=item_id, Body=str(item))
-        return jsonify(item), 201
-    except ClientError:
-        return jsonify({'error': 'Error accessing S3'}), 500
+def test_put_update_item(client):
+    item_id = 'put-update-item-id'
+    initial_data = {'name': 'Initial Item', 'value': 'Initial value.'}
+    updated_data = {'name': 'Updated Item', 'value': 'Updated value.'}
+    
+    client.post(f'/items/{item_id}', data=json.dumps(initial_data), content_type='application/json')
+    response = client.put(f'/items/{item_id}', data=json.dumps(updated_data), content_type='application/json')
+    
+    assert response.status_code == 200
+    response_json = json.loads(response.data)
+    assert response_json['id'] == item_id
+    assert response_json['name'] == 'Updated Item'
+    assert response_json['value'] == 'Updated value.'
+    assert json.loads(get_s3_object(BUCKET_NAME, item_id)) == json.dumps(updated_data)
 
-@app.route('/items/<item_id>', methods=['PUT'])
-def update_item(item_id):
-    if not table.get_item(Key={'id': item_id}).get('Item'):
-        return jsonify({'error': 'Item not found'}), 404
+def test_put_item_not_found(client):
+    item_id = 'put-item-not-found-id'
+    updated_data = {'name': 'Updated Item', 'value': 'Updated value.'}
+    
+    response = client.put(f'/items/{item_id}', data=json.dumps(updated_data), content_type='application/json')
+    assert response.status_code == 404
+    response_json = json.loads(response.data)
+    assert response_json['error'] == 'Item not found'
 
-    item = request.json
-    item['id'] = item_id
+def test_delete_item(client):
+    item_id = 'delete-item-id'
+    item_data = {'name': 'Delete Item', 'value': 'This item should be deleted.'}
+    
+    client.post(f'/items/{item_id}', data=json.dumps(item_data), content_type='application/json')
+    response = client.delete(f'/items/{item_id}')
+    
+    assert response.status_code == 204
+    assert get_s3_object(BUCKET_NAME, item_id) is None
+    
+    response = client.get(f'/items/{item_id}')
+    assert response.status_code == 404
+    response_json = json.loads(response.data)
+    assert response_json['error'] == 'Item not found'
 
-    try:
-        table.put_item(Item=item)
-        s3.put_object(Bucket=BUCKET_NAME, Key=item_id, Body=str(item))
-        return jsonify(item), 200
-    except ClientError:
-        return jsonify({'error': 'Error accessing S3'}), 500
-
-@app.route('/items/<item_id>', methods=['DELETE'])
-def delete_item(item_id):
-    if not table.get_item(Key={'id': item_id}).get('Item'):
-        return jsonify({'error': 'Item not found'}), 404
-
-    try:
-        table.delete_item(Key={'id': item_id})
-        s3.delete_object(Bucket=BUCKET_NAME, Key=item_id)
-        return '', 204
-    except ClientError:
-        return jsonify({'error': 'Error accessing S3'}), 500
+def test_delete_item_not_found(client):
+    item_id = 'delete-item-not-found-id'
+    
+    response = client.delete(f'/items/{item_id}')
+    assert response.status_code == 404
+    response_json = json.loads(response.data)
+    assert response_json['error'] == 'Item not found'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    pytest.main()
