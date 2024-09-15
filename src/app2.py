@@ -8,8 +8,8 @@ import uuid
 app = Flask(__name__)
 
 # Initialize AWS clients with LocalStack
-dynamodb = boto3.resource('dynamodb', endpoint_url='http://localstack:4566')
-s3 = boto3.client('s3', endpoint_url='http://localstack:4566')
+dynamodb = boto3.resource('dynamodb', endpoint_url='http://localstack:4566', region_name='us-east-1')
+s3 = boto3.client('s3', endpoint_url='http://localstack:4566', region_name='us-east-1')
 
 # DynamoDB table and S3 bucket names
 TABLE_NAME = 'items'
