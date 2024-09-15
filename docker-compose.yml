@@ -2,12 +2,12 @@ version: '3.8'
 
 services:
   localstack:
-    image: localstack/localstack:2.0.0
+    image: localstack/localstack:latest
     ports:
       - "4566:4566"
       - "4510:4510"  # DynamoDB port
     environment:
-      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LOCALSTACK_PORT=4566
     volumes:
       - localstack_volume:/var/lib/localstack
       - /var/run/docker.sock:/var/run/docker.sock
