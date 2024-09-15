@@ -20,3 +20,26 @@ The workflow for assignment 2 is python-app.yml and was written to be triggered 
 The app.py file contains code to get, create, update, and delete items and the test_app.py file has tests to ensure that each of those functions are working as they should. Dockerfile.api containerizes app.py and run_api.sh then uses Dockerfile.api to build an image, creates and starts a container for that image and exposes that container on port 5000. Dockerfile.test and run_tests.sh function in a similar manner but for the test_app.py file. The python-app.yml workflow was designed to run the codes but if you wanted to run any of the files separate from the workflow you would simply have to clone the repo and use the terminal and the commands ./run_api.sh and run_tests.sh to execute the app.py and test_app.py files respectively. 
 
 ## Assignment 3: 
+The third step in this project was to improve on the work done in step 2 by adding functionality to create, read, update, and destroy items in a DynamoDB table and an S3 bucket and then using Localstack to run a mock of AWS as part of the application stack. The following testing requirements were added: 
+
+- Sending a GET request with appropriate parameters returns expected JSON from the database
+- Sending a GET request that finds no results returns the appropriate response
+- Sending a GET request with no parameters returns the appropriate response
+- Sending a GET request with incorrect parameters returns the appropriate response
+- Sending a POST request results in the JSON body being stored as an item in the database, and an object in an S3 bucket
+- Sending a duplicate POST request returns the appropriate response
+- Sending a PUT request that targets an existing resource results in updates to the appropriate item in the database and object in the S3 bucket
+- Sending a PUT request with no valid target returns the appropriate response
+- Sending a DELETE request results in the appropriate item being removed from the database and object being removed from the S3 bucket
+- Sending a DELETE request with no valid target returns the appropriate response
+
+For each test, the database item and S3 object should match.
+
+The files created for this particular assignment were app2.py, Dockerfile2.api, run_stack.sh, Dockerfile2.test, run_tests2.sh, docker-compose.yml and docker-compose.test.yml. 
+
+### The Workflow
+The workflow for assignment 2 is python-app2.yml and was written to be triggered when pushes or pull requests are made of the main branch and can also be run manually from the actions tab. This workflow will check out the code, set up docker build and compose, build docker image for API and for tests, run stack, and then run tests. 
+
+### The Code: 
+The app2.py file contains code to get, create, update, and delete items with the added dynamodb and s3 functionality. The same test file as was created for assignment 2, test_app.py 
+was used to test app2.py. Dockerfile2.api containerizes app2.py and run_api2.sh then uses Dockerfile.api to build an image, creates and starts a container for that image and exposes that container on port 5000. Dockerfile2.test and run_tests2.sh function in a similar manner but for the test_app.py file. Docker-compose.yml 
