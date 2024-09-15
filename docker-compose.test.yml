@@ -9,15 +9,3 @@ services:
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
       - "./localstack:/etc/localstack"
-
-  api:
-    build:
-      context: .
-      dockerfile: src/Dockerfile2.test
-    ports:
-      - "5000:5000"
-    depends_on:
-      - localstack
-
-volumes:
-  localstack_volume:
