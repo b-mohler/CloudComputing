@@ -48,14 +48,14 @@ jobs:
       run: docker build -f src/Dockerfile2.api -t my-api .
 
     - name: Build Docker image for tests
-      run: docker build -f tests/Dockerfile2.test -t my-tests .
+      run: docker build -f tests/Dockerfile2.test -t my-tests2 .
 
     - name: Run stack
       run: |
         docker-compose -f docker-compose.yml up -d
 
     - name: Run tests
-      run: docker run --rm my-tests
+      run: docker run --rm my-tests2
       env:
           AWS_ACCESS_KEY_ID: dummy
           AWS_SECRET_ACCESS_KEY: dummy
