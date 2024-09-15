@@ -7,6 +7,10 @@ import uuid
 
 app = Flask(__name__)
 
+# Environment variables for LocalStack credentials
+os.environ['AWS_ACCESS_KEY_ID'] = 'dummy'
+os.environ['AWS_SECRET_ACCESS_KEY'] = 'dummy'
+
 # Initialize AWS clients with LocalStack
 dynamodb = boto3.resource('dynamodb', endpoint_url='http://localstack:4566', region_name='us-east-1')
 s3 = boto3.client('s3', endpoint_url='http://localstack:4566', region_name='us-east-1')
