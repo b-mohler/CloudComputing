@@ -15,7 +15,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile2.api
+      dockerfile: src/Dockerfile2.api
     ports:
       - "5000:5000"
     depends_on:
