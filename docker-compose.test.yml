@@ -5,7 +5,7 @@ services:
     image: localstack/localstack:2.0.0
     ports:
       - "4566:4566"
-      #- "4510:4510"  # DynamoDB port
+      - "4510:4510"  # DynamoDB port
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
