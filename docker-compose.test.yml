@@ -4,8 +4,8 @@ services:
   localstack:
     image: localstack/localstack:latest
     ports:
-      - "4567:4566"
-      - "4510:4510"  # DynamoDB port
+      - "4568:4566"
+      - "4512:4510"  # DynamoDB port
     environment:
       - LOCALSTACK_PORT=4566
     volumes:
@@ -17,7 +17,7 @@ services:
       context: .
       dockerfile: src/Dockerfile2.test
     ports:
-      - "5001:5000"
+      - "5002:5000"
     depends_on:
       - localstack
 
