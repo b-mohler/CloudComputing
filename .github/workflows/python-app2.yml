@@ -12,6 +12,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      localstack:
+        image: localstack/localstack
+        ports:
+          - 4566:4566
+        options: --entrypoint /bin/sh
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
