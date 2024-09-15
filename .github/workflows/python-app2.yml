@@ -8,17 +8,17 @@ on:
     branches:
       - main
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
 
+jobs:
+  test:
+    runs-on: ubuntu-latest
     services:
       localstack:
         image: localstack/localstack
         ports:
           - 4566:4566
-        options: --entrypoint /bin/sh
-
+        options: --health-cmd="curl --silent --fail http://localhost:4566/_localstack/health || exit 1" --health-interval=10s --health-timeout=5s --health-retries=3
+        
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
