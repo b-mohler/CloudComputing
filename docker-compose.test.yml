@@ -4,16 +4,18 @@ services:
   localstack:
     image: localstack/localstack
     ports:
-      - "5000:5000"
+      - "4566:4566"
+      - "4510:4510"  # DynamoDB port
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
     volumes:
-      - "./localstack:/etc/localstack"
+      - localstack_volume:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
 
   api:
     build:
       context: .
-      dockerfile: src/Dockerfile2.api
+      dockerfile: src/Dockerfile2.test
     ports:
       - "5000:5000"
     depends_on:
