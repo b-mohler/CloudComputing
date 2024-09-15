@@ -17,5 +17,9 @@ COPY src/app2.py /app2/app2.py
 # Expose port 5000 for the application
 EXPOSE 5000
 
+# Set environment variables for LocalStack
+ENV AWS_ACCESS_KEY_ID=dummy
+ENV AWS_SECRET_ACCESS_KEY=dummy
+
 # Define the command to run the application
 CMD ["python", "app2.py"]
