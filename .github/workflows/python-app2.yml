@@ -56,3 +56,7 @@ jobs:
 
     - name: Run tests
       run: docker run --rm my-tests
+      env:
+          AWS_ACCESS_KEY_ID: dummy
+          AWS_SECRET_ACCESS_KEY: dummy
+          AWS_DEFAULT_REGION: us-east-1
