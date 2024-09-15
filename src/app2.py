@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 import boto3
 from botocore.exceptions import ClientError
 import uuid
+import os
 
 app = Flask(__name__)
 
