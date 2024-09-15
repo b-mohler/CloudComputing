@@ -1,6 +1,6 @@
 import pytest
 import json
-from app2 import app, create_resources, dynamodb, s3, TABLE_NAME, BUCKET_NAME
+from src.app2 import app, create_resources, dynamodb, s3, TABLE_NAME, BUCKET_NAME
 
 # Initialize the Flask test client and create resources
 @pytest.fixture(scope='module')
